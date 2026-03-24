@@ -1,8 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from django.http import JsonResponse
-# from .sample_data import SAMPLE_DECKS, SAMPLE_CARDS
 from .models import Deck, Card
 from .serializers import DeckSerializer, CardSerializer
 
@@ -25,14 +23,34 @@ def decks_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-@api_view(['GET'])
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 def deck_detail(request, deck_id):
     try:
         deck = Deck.objects.get(id=deck_id)
     except Deck.DoesNotExist:
         return Response({'error': 'Deck not found'}, status=status.HTTP_404_NOT_FOUND)
-    serializer = DeckSerializer(deck)
-    return Response(serializer.data)
+    
+    if request.method == 'GET':
+        serializer = DeckSerializer(deck)
+        return Response(serializer.data)
+    
+    if request.method == 'PUT':
+        serializer = DeckSerializer(deck, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    if request.method == 'PATCH':
+        serializer = DeckSerializer(deck, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    if request.method == 'DELETE':
+        deck.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET', 'POST'])
@@ -48,3 +66,32 @@ def cards_for_deck(request, deck_id):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+def card_detail(request, deck_id, card_id):
+    try:
+        card = Card.objects.get(id=card_id, deck_id=deck_id)
+    except Card.DoesNotExist:
+        return Response({'error': 'Card not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'GET':
+        serializer = CardSerializer(card)
+        return Response(serializer.data)
+    
+    if request.method == 'PUT':
+        serializer = CardSerializer(card, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    if request.method == 'PATCH':
+        serializer = CardSerializer(card, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    if request.method == 'DELETE':
+        card.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
