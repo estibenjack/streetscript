@@ -46,6 +46,19 @@ INSTALLED_APPS = [
     'decks'
 ]
 
+REST_FRAMEWORK = {
+    # tells drf how to identify who's making the req (looks for jwt token in req header)
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    # tells drf what to do when it knows who they are
+    # isAuthenticated means every endpoint is protected by default
+    # any req without a valid token gets 401 unauthorized response automatically
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
