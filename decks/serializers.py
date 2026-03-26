@@ -4,7 +4,7 @@ from .models import Deck, Card
 '''
 used sample data previously, now using models and postgres db so:
 using serializers.ModelSerializer instead of .Serializer
---> instead of deining the fields manually, it reads the model and knows
+--> instead of defining the fields manually, it reads the model and knows
     the fields already
 Meta class tells it which model to use
 
