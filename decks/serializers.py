@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Deck, Card
 
 '''
-used sample data previously, not using models and postgres db so:
+used sample data previously, now using models and postgres db so:
 using serializers.ModelSerializer instead of .Serializer
 --> instead of deining the fields manually, it reads the model and knows
     the fields already
