@@ -37,6 +37,8 @@ def generate_flashcards(lyrics):
     - back: the English translation
     - context: a brief explanation of the word or phrase, any cultural meaning or fun facts"""
     
+    # TODO: add error handling for gemini API failures (rate limits, invalid responses)
+    # and return a clean 503 or 429 response instead of a 500
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents=prompt,

@@ -63,6 +63,7 @@ def cards_for_deck(request, deck_id):
         return Response(serializer.data)
     
     if request.method == 'POST':
+        # TODO: verify deck belongs to request.user before allowing card creation
         serializer = CardSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -72,6 +73,7 @@ def cards_for_deck(request, deck_id):
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 def card_detail(request, deck_id, card_id):
     try:
+        # TODO: verify deck belongs to request.user before returning cards
         # filter by both card id and deck id to prevent cross-deck access
         card = Card.objects.get(id=card_id, deck_id=deck_id)
     except Card.DoesNotExist:
