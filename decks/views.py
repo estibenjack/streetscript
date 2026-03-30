@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Deck, Card
 from .serializers import DeckSerializer, CardSerializer
+from .generate import generate_flashcards
 
 
 @api_view(['GET', 'POST'])
@@ -26,7 +27,8 @@ def decks_list(request):
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 def deck_detail(request, deck_id):
     try:
-        deck = Deck.objects.get(id=deck_id)
+        # filter by user so users only see their own decks
+        deck = Deck.objects.get(id=deck_id, user=request.user)
     except Deck.DoesNotExist:
         return Response({'error': 'Deck not found'}, status=status.HTTP_404_NOT_FOUND)
     
@@ -70,6 +72,7 @@ def cards_for_deck(request, deck_id):
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 def card_detail(request, deck_id, card_id):
     try:
+        # filter by both card id and deck id to prevent cross-deck access
         card = Card.objects.get(id=card_id, deck_id=deck_id)
     except Card.DoesNotExist:
         return Response({'error': 'Card not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -95,3 +98,29 @@ def card_detail(request, deck_id, card_id):
     if request.method == 'DELETE':
         card.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+@api_view(['POST'])
+def generate_cards(request, deck_id):
+    try:
+        deck = Deck.objects.get(id=deck_id, user=request.user)
+    except Deck.DoesNotExist:
+        return Response({'error': 'Deck not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    lyrics = request.data.get('lyrics')
+    if not lyrics:
+        return Response({'error': 'No lyrics provided'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    flashcards = generate_flashcards(lyrics)
+    
+    created_cards = []
+    
+    # cards saved individually rather than bulk_create to use 
+    # serializer validation on each card
+    for card_data in flashcards:
+        card_data['deck'] = deck.id
+        serializer = CardSerializer(data=card_data)
+        if serializer.is_valid():
+            serializer.save()
+            created_cards.append(serializer.data)
+    return Response(created_cards, status=status.HTTP_201_CREATED)
+    
