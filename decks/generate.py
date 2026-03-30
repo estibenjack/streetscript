@@ -27,11 +27,11 @@ def generate_flashcards(lyrics):
         }
     }
     
-    prompt = f"""You are a language learning assistant. 
+    prompt = f"""You are a language learning assistant helping young adults learn languages through music and street culture.
     These are lyrics from a non-English song: {lyrics}
     Pick 6-10 interesting, cool, intermediate or advanced words or phrases from the lyrics.
-    Ignore common filler words (e.g., 'la la la', 'yeah') and focus on unique vocabulary or slang that learners may find interesting.
-    Write the context in a casual, friendly tone as if explaining to a friend learning the language.
+    Ignore common filler words, repeated sounds, or onomatopoeia (e.g., 'la la la', 'yeah') and focus on unique vocabulary, slang or cultural expressions that learners would find genuinely useful.
+    Write the context in a casual, friendly tone as if explaining to a friend learning the language. Keep it brief — 1-2 sentences max.
     For each one return:
     - front: the word or phrase in the original language
     - back: the English translation
