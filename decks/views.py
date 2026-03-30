@@ -8,7 +8,7 @@ from .serializers import DeckSerializer, CardSerializer
 @api_view(['GET', 'POST'])
 def decks_list(request):
     if request.method == 'GET':
-        decks = Deck.objects.all()
+        decks = Deck.objects.filter(user=request.user)
         serializer = DeckSerializer(decks, many=True)
         return Response(serializer.data)
     
@@ -18,7 +18,7 @@ def decks_list(request):
         # validate data against model's field rules
         if serializer.is_valid():
             #write to db (django handles INSERT)
-            serializer.save()
+            serializer.save(user=request.user) #pass request.user to save() - it access kwargs
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     

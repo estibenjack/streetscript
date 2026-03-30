@@ -18,6 +18,8 @@ class CardSerializer(serializers.ModelSerializer):
         fields = ['id', 'deck', 'front', 'back', 'context', 'created_at']
         
 class DeckSerializer(serializers.ModelSerializer):
+    # read-only so user is returned in responses but never set by the client
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = Deck
-        fields = ['id', 'name', 'description', 'language', 'created_at']
+        fields = ['id', 'name', 'user', 'description', 'language', 'created_at']
