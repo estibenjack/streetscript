@@ -3,14 +3,6 @@ from google.genai import types
 import json
 import os
 
-# # The client gets the API key from the environment variable `GEMINI_API_KEY`.
-# client = genai.Client()
-
-# response = client.models.generate_content(
-#     model="gemini-3-flash-preview",
-#     contents="Explain how AI works in a few words"
-# )
-# print(response.text)
 client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY'))
 
 def generate_flashcards(lyrics):
@@ -37,17 +29,19 @@ def generate_flashcards(lyrics):
     - back: the English translation
     - context: a brief explanation of the word or phrase, any cultural meaning or fun facts"""
     
-    # TODO: add error handling for gemini API failures (rate limits, invalid responses)
-    # and return a clean 503 or 429 response instead of a 500
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt,
-        # structured output via response_mime_type ensures consistent JSON 
-        # without needing to parse or clean markdown from the response
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=response_schema
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            # structured output via response_mime_type ensures consistent JSON 
+            # without needing to parse or clean markdown from the response
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=response_schema
+            )
         )
-    )
-    
-    return json.loads(response.text)
+        
+        return json.loads(response.text)
+    except Exception as e:
+        # raise exception if fails so views.py can return the right HTTP response
+        raise Exception(f"Gemini API error: {str(e)}")

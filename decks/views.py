@@ -108,11 +108,17 @@ def generate_cards(request, deck_id):
     except Deck.DoesNotExist:
         return Response({'error': 'Deck not found'}, status=status.HTTP_404_NOT_FOUND)
     
+    
     lyrics = request.data.get('lyrics')
     if not lyrics:
         return Response({'error': 'No lyrics provided'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    flashcards = generate_flashcards(lyrics)
+    try:
+        flashcards = generate_flashcards(lyrics)
+    except Exception as e:
+        return Response(
+            {'error': 'Failed to generate flashcards. Please try again.'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
     
     created_cards = []
     
