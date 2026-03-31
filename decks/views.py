@@ -14,12 +14,9 @@ def decks_list(request):
         return Response(serializer.data)
     
     if request.method == 'POST':
-        # pass the request body to the serializer here
         serializer = DeckSerializer(data=request.data)
-        # validate data against model's field rules
         if serializer.is_valid():
-            #write to db (django handles INSERT)
-            serializer.save(user=request.user) #pass request.user to save() - it access kwargs
+            serializer.save(user=request.user) # user assigned from token, not req body
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -57,25 +54,33 @@ def deck_detail(request, deck_id):
 
 @api_view(['GET', 'POST'])
 def cards_for_deck(request, deck_id):
+    try:
+        deck = Deck.objects.get(id=deck_id, user=request.user)
+    except Deck.DoesNotExist:
+        return Response({'error': 'Deck not found'}, status=status.HTTP_404_NOT_FOUND)
+        
     if request.method == 'GET':
-        cards = Card.objects.filter(deck_id=deck_id)
+        cards = Card.objects.filter(deck=deck)
         serializer = CardSerializer(cards, many=True)
         return Response(serializer.data)
     
     if request.method == 'POST':
-        # TODO: verify deck belongs to request.user before allowing card creation
         serializer = CardSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+   
     
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 def card_detail(request, deck_id, card_id):
     try:
-        # TODO: verify deck belongs to request.user before returning cards
-        # filter by both card id and deck id to prevent cross-deck access
-        card = Card.objects.get(id=card_id, deck_id=deck_id)
+        deck = Deck.objects.get(id=deck_id, user=request.user)
+    except Deck.DoesNotExist:
+        return Response({'error': 'Deck not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+    try:
+        card = Card.objects.get(id=card_id, deck=deck)
     except Card.DoesNotExist:
         return Response({'error': 'Card not found'}, status=status.HTTP_404_NOT_FOUND)
     
