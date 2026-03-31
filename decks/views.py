@@ -152,7 +152,7 @@ def from_song(request):
         lyrics = fetch_lyrics(song_title, artist)
     except Exception as e:
         # return Response({'error': 'Song not found'}, status=status.HTTP_404_NOT_FOUND)
-        return Response({'error': f"Genius API error: {str(e)}"})
+        return Response({'error': f"Genius API error: {str(e)}"}, status=status.HTTP_404_NOT_FOUND)
     
     if not lyrics:
         return Response({'error': 'No lyrics provided'}, status=status.HTTP_400_BAD_REQUEST)
