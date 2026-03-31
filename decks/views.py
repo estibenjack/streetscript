@@ -4,6 +4,7 @@ from rest_framework import status
 from .models import Deck, Card
 from .serializers import DeckSerializer, CardSerializer
 from .generate import generate_flashcards
+from .genius import fetch_lyrics
 
 
 @api_view(['GET', 'POST'])
@@ -118,7 +119,8 @@ def generate_cards(request, deck_id):
     if not lyrics:
         return Response({'error': 'No lyrics provided'}, status=status.HTTP_400_BAD_REQUEST)
     try:
-        flashcards = generate_flashcards(lyrics)
+        result = generate_flashcards(lyrics)
+        flashcards = result['cards']
     except Exception as e:
         return Response(
             {'error': 'Failed to generate flashcards. Please try again.'},
@@ -137,3 +139,46 @@ def generate_cards(request, deck_id):
             created_cards.append(serializer.data)
     return Response(created_cards, status=status.HTTP_201_CREATED)
     
+
+@api_view(['POST'])
+def from_song(request):
+    song_title = request.data.get('song_title')
+    artist = request.data.get('artist')
+    
+    if not song_title or not artist:
+        return Response({'error': 'song_title and artist are required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        lyrics = fetch_lyrics(song_title, artist)
+    except Exception as e:
+        return Response({'error': 'Song not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if not lyrics:
+        return Response({'error': 'No lyrics provided'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        result = generate_flashcards(lyrics)
+        flashcards = result['cards']
+        language = result['language']
+    except Exception as e:
+        return Response({
+            'error': 'Failed to generate flashcards. Please try again.'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
+    
+    deck = Deck.objects.create(
+        name=f"{artist} - {song_title}",
+        description=f"Auto-generated from {song_title} by {artist}",
+        language=language,
+        user=request.user
+    )
+    
+    created_cards = []
+    
+    for card_data in flashcards:
+        card_data['deck'] = deck.id
+        serializer = CardSerializer(data=card_data)
+        if serializer.is_valid():
+            serializer.save()
+            created_cards.append(serializer.data)
+    return Response(created_cards, status=status.HTTP_201_CREATED)
+        
