@@ -7,7 +7,7 @@ def fetch_lyrics(song_title, artist):
     try:
         song = genius.search_song(song_title, artist)
         if song is None:
-            raise Exception(f"Song not found: {song_title} by {artist}")
+            raise Exception("Song not found")
         lyrics = song.lyrics
         return lyrics
     except Exception as e:
