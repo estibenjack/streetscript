@@ -7,16 +7,23 @@ client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY'))
 
 def generate_flashcards(lyrics):
     response_schema = {
-        "type": "ARRAY",
-        "items": {
-            "type": "OBJECT",
-            "properties": {
-                "front": {"type": "STRING"},
-                "back": {"type": "STRING"},
-                "context": {"type": "STRING"}
-            },
-            "required": ["front", "back", "context"]
+    "type": "OBJECT",
+    "properties": {
+        "language": {"type": "STRING"},
+        "cards": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "front": {"type": "STRING"},
+                    "back": {"type": "STRING"},
+                    "context": {"type": "STRING"}
+                },
+                "required": ["front", "back", "context"]
+            }
         }
+    },
+    "required": ["language", "cards"]
     }
     
     prompt = f"""You are a language learning assistant helping young adults learn languages through music and street culture.
@@ -27,7 +34,11 @@ def generate_flashcards(lyrics):
     For each one return:
     - front: the word or phrase in the original language
     - back: the English translation
-    - context: a brief explanation of the word or phrase, any cultural meaning or fun facts"""
+    - context: a brief explanation of the word or phrase, any cultural meaning or fun facts
+    Also detect and return the language of the lyrics as a single string (e.g. "Portuguese", "French", "Spanish").
+    For songs where the lyrics are predominantly in two languages (roughly 30% or more in each), return both languages as a single string (e.g. "Spanish/Catalan", "French/Lingala").
+    If one language makes up less than 30% of the lyrics, return only the dominant language.
+    """
     
     try:
         response = client.models.generate_content(
